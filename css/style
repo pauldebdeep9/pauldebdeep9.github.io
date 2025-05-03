@@ -1,0 +1,15 @@
+
+body {
+  font-family: Georgia, serif;
+  margin: 0 auto;
+  max-width: 800px;
+  padding: 20px;
+  background: #fdfdfd;
+  color: #111;
+}
+
+nav a {
+  margin-right: 10px;
+  text-decoration: none;
+  color: #0066cc;
+}
