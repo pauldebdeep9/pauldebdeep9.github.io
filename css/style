@@ -93,7 +93,7 @@ main {
 
 .profile-content {
   display: grid;
-  grid-template-columns: 200px 1fr;
+  grid-template-columns: 120px 1fr;
   gap: 40px;
   align-items: start;
 }
