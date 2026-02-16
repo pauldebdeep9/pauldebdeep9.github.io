@@ -1,0 +1,18 @@
+---
+layout: page
+title: Blog
+nav: blog
+---
+<p>Notes on AI systems, optimization, and practical GenAI engineering.</p>
+
+<div class="post-list">
+  {% for post in site.posts %}
+    <article class="post-list-item">
+      <h3><a href="{{ post.url | relative_url }}">{{ post.title }}</a></h3>
+      <p class="post-list-meta">{{ post.date | date: "%B %-d, %Y" }}</p>
+      <p>{{ post.excerpt | strip_html | truncate: 220 }}</p>
+    </article>
+  {% else %}
+    <p>No published posts yet.</p>
+  {% endfor %}
+</div>

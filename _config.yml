@@ -1,0 +1,16 @@
+title: Debdeep Paul
+description: Personal website and blog of Debdeep Paul
+url: "https://pauldebdeep9.github.io"
+baseurl: ""
+markdown: kramdown
+permalink: /blog/:title/
+timezone: Asia/Kolkata
+plugins:
+  - jekyll-feed
+defaults:
+  - scope:
+      path: ""
+      type: posts
+    values:
+      layout: post
+      nav: blog

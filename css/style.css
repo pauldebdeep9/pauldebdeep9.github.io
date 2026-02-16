@@ -166,6 +166,114 @@ footer {
   color: #828282;
 }
 
+/* Generic Pages */
+.page-header h1,
+.post-title {
+  font-size: 32px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: #111;
+}
+
+.page-body p,
+.post-content p {
+  margin-bottom: 16px;
+  color: #333;
+}
+
+/* Blog Listing */
+.post-list {
+  margin-top: 24px;
+  display: grid;
+  gap: 24px;
+}
+
+.post-list-item {
+  padding-bottom: 20px;
+  border-bottom: 1px solid #e8e8e8;
+}
+
+.post-list-item:last-child {
+  border-bottom: none;
+}
+
+.post-list-item h3 {
+  font-size: 26px;
+  margin-bottom: 6px;
+}
+
+.post-list-item a {
+  color: #111;
+  text-decoration: none;
+}
+
+.post-list-item a:hover {
+  color: #0056b3;
+}
+
+.post-list-meta,
+.post-meta {
+  font-size: 15px;
+  color: #828282;
+  margin-bottom: 10px;
+}
+
+.post-excerpt {
+  color: #555;
+  font-style: italic;
+  margin-bottom: 22px;
+}
+
+/* Markdown Post Content */
+.post-content h2,
+.post-content h3,
+.post-content h4 {
+  margin: 26px 0 10px;
+  color: #111;
+}
+
+.post-content ul,
+.post-content ol {
+  margin: 0 0 16px 24px;
+}
+
+.post-content li {
+  margin-bottom: 6px;
+}
+
+.post-content a,
+.page-body a {
+  color: #0056b3;
+  text-decoration: none;
+}
+
+.post-content a:hover,
+.page-body a:hover {
+  text-decoration: underline;
+}
+
+.post-content code {
+  background-color: #f5f5f5;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 16px;
+}
+
+.post-content pre {
+  background-color: #111;
+  color: #f4f4f4;
+  padding: 14px;
+  border-radius: 8px;
+  overflow-x: auto;
+  margin-bottom: 16px;
+}
+
+.post-content pre code {
+  background: transparent;
+  padding: 0;
+  color: inherit;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .profile-content {
@@ -188,5 +296,14 @@ footer {
   
   .site-title {
     font-size: 20px;
+  }
+
+  .page-header h1,
+  .post-title {
+    font-size: 28px;
+  }
+
+  .post-list-item h3 {
+    font-size: 22px;
   }
 }
