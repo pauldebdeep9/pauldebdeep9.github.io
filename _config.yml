@@ -5,6 +5,7 @@ baseurl: ""
 markdown: kramdown
 permalink: /blog/:title/
 timezone: Asia/Kolkata
+future: true
 plugins:
   - jekyll-feed
 defaults:

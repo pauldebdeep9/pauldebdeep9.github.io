@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "RLHF in Plain English: How LLMs Learn to Follow Humans (Without Becoming Robots)"
-date: 2026-02-16 22:00:00 +0530
+date: 2026-02-16 00:00:00 +0530
 categories: [genai, alignment]
 tags: [rlhf, llm, dpo, post-training]
 excerpt: "A practical high-level guide to RLHF: what it is, why it exists, and how it works."
