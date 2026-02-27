@@ -12,238 +12,391 @@ This post summarizes the **most recent complete offering**, which is **Spring 20
 
 ---
 
-## What CS336 Tries to Teach (Beyond "How Transformers Work")
+## What This Course Is Actually About
 
-CS336 is not a survey class and not an API-first class. It is a systems-first, implementation-heavy class built around one central question:
+CS336 is less "learn transformer equations" and more "learn to engineer language models under hard resource constraints."  
+The organizing principle across the quarter is:
 
-> Given fixed resources (compute, memory, bandwidth, and data), how do you build the best language model you can?
+> Maximize model quality under limited compute, memory, communication bandwidth, and data quality.
 
-The Spring 2025 version emphasizes four things in parallel:
-
-- **Mechanics**: how tokenization, attention, optimization, and decoding work mathematically and in code.
-- **Systems**: where time and memory go on real hardware, and how to recover performance.
-- **Scaling discipline**: using empirical laws and constrained budgets instead of wishful extrapolation.
-- **Alignment/evaluation realism**: how post-training and evaluation actually behave in practice, including reasoning-focused RL.
-
-This makes the course unusually close to real research engineering workflows.
+In Spring 2025, that objective is developed lecture by lecture, then forced into practice through assignments.
 
 ---
 
-## Course Arc (Spring 2025 Schedule)
+## Lecture-by-Lecture Long Summary (Spring 2025)
 
-The complete offering runs from **April 1, 2025 to June 6, 2025**, with 19 scheduled meetings (including guest lectures) and five major assignments.
+The complete offering runs from **April 1, 2025 to June 6, 2025**.  
+Below is a long, technical summary of each scheduled lecture.
 
-### 1) Foundations and Transformer internals (Lectures 1-4)
+## Lecture 1 (Apr 1): Overview and Tokenization
 
-The first block sets framing and fundamentals:
+The opening lecture frames the core motivation for CS336: frontier models are increasingly "industrialized" and opaque, while researchers still need mechanistic understanding to do serious work.  
+The lecture distinguishes three kinds of knowledge:
 
-- Overview and tokenization
-- PyTorch fundamentals and resource accounting
-- Architecture and hyperparameters
-- Mixture-of-Experts (MoE)
+- **Mechanics** (what components do)
+- **Mindset** (optimize efficiency under scale)
+- **Intuition** (which design choices actually work)
 
-The key move here is that tokenization and architecture are treated as **first-order optimization variables**, not boilerplate. Students are asked to reason about representation granularity, sequence length trade-offs, and parameter/compute budgets early.
+Key framing arguments:
 
-### 2) Hardware and single-node performance (Lectures 5-6)
+- "Scale alone" is a bad interpretation of progress; **scalable algorithms** matter.
+- Smaller (<1B) course models are imperfect proxies for frontier systems, but they still teach transferable mechanics.
+- The right mental model is to optimize **accuracy = efficiency x resources**.
 
-This block transitions from model math to kernels:
+The lecture also surveys LM history (n-grams -> neural LM -> seq2seq -> attention -> transformer -> scaling era -> open models), then maps out the full course stack: tokenization, architecture, training, kernels, distributed systems, inference, scaling laws, data curation, evaluation, and alignment.
 
-- GPU architecture and memory hierarchy
-- Kernels and Triton
+## Lecture 2 (Apr 3): PyTorch Primitives and Resource Accounting
 
-The practical objective is explicit: map transformer primitives onto hardware efficiently. In course terms, arithmetic intensity, memory traffic, and kernel fusion become core modeling concerns, not implementation afterthoughts.
+This lecture is a bottom-up systems tutorial for training loops:
 
-### 3) Distributed training and parallelism (Lectures 7-8)
+- Tensor basics, storage, views, strides, and contiguous layouts
+- Float formats (`fp32`, `fp16`, `bf16`, `fp8`) and stability/range trade-offs
+- FLOPs accounting for linear layers and backprop
+- Model FLOPs utilization (MFU) and throughput interpretation
+- Parameter initialization and training stability intuition
+- Data loading/memmap/pinned memory
+- Optimizer mechanics (Adam-family lineage) and loop structure
+- Mixed precision and practical checkpointing
 
-Parallelism is treated as a design space:
+The core habit it tries to build: do rough accounting before coding expensive runs.
 
-- Collective communication primitives (broadcast, reduce, all-reduce, all-gather, reduce-scatter)
-- Distributed data parallel behavior in PyTorch/NCCL
-- Data, tensor, and pipeline parallelism
+Instead of hand-wavy "this model is big," students are trained to ask:
 
-The major learning outcome is to understand **communication as a bottlenecked system** and to engineer overlap between compute and communication.
+- How much memory does each state tensor need?
+- Where do forward/backward FLOPs concentrate?
+- Which dtype decisions change stability vs speed?
 
-### 4) Scaling and deployment path (Lectures 9-12)
+## Lecture 3 (Apr 8): Architectures and Hyperparameters
 
-The next block bridges training-time and serving-time optimization:
+Lecture 3 moves from canonical transformers to modern LM design conventions.
 
-- Scaling laws (intro + details)
-- Inference systems
-- Evaluation
+Major architecture topics:
 
-Highlights include compute-optimal scaling intuition, inference latency/throughput trade-offs, and a broad benchmark taxonomy (knowledge, instruction following, agentic capability, reasoning, and safety).
+- **Pre-norm vs post-norm**: why pre-norm became dominant
+- **LayerNorm vs RMSNorm**: runtime/memory movement considerations
+- **Bias removal** in many modern stacks
+- **FFN variants**: ReLU/GeLU vs gated variants (SwiGLU/GeGLU)
+- **Serial vs parallel block variants**
+- **Positional schemes**: absolute/relative/RoPE
 
-### 5) Data curation and alignment (Lectures 13-17)
+One major takeaway is methodological: architecture choices are often empirical and ecosystem-driven, but there are still recurring patterns (for example, pre-norm + RMSNorm + SwiGLU-like stacks in many recent open models).
 
-The final core block addresses data and post-training:
+## Lecture 4 (Apr 10): Mixture of Experts (MoE)
 
-- Data sources and legal constraints
-- Data filtering and deduplication
-- Alignment via SFT/RLHF
-- RL-style alignment and reasoning-focused policy optimization
+This lecture explains why sparse MoEs became mainstream:
 
-This is where students connect upstream data decisions with downstream model behavior and then connect reward design with policy behavior.
+- Higher parameter capacity at similar active FLOPs
+- Strong open-model results at large scale
+- Good fit for multi-device parallelism
 
-### 6) Guest perspectives (Lectures 18-19)
+Detailed topics include:
 
-The course ends with guest lectures (Junyang Lin and Mike Lewis), extending course themes to real-world system and model development contexts.
+- Routing families (top-k token choice, hashing, assignment variants)
+- Expert granularity and shared-expert patterns
+- Load balancing heuristics and auxiliary losses
+- Training stability issues (router behavior, precision choices)
+- Systems concerns (sparse kernels, communication patterns)
+- Upcycling dense checkpoints into MoE models
+
+The lecture uses contemporary model families (including DeepSeek/Qwen-era designs) to show how "paper MoE" differs from production MoE.
+
+## Lecture 5 (Apr 15): GPUs
+
+Lecture 5 is the hardware foundations lecture:
+
+- GPU vs CPU execution model (throughput-oriented SIMT)
+- SMs, warps, memory hierarchy, and bandwidth constraints
+- Why matmuls dominate and why memory still bottlenecks end-to-end speed
+
+Optimization concepts covered:
+
+- Roofline intuition
+- Control divergence
+- Precision effects on arithmetic intensity
+- Operator fusion
+- Recomputation trade-offs
+- Coalesced memory access
+- Tiling and wave quantization effects
+
+The lecture closes by connecting these ideas to attention acceleration (FlashAttention-style reasoning), preparing students for kernel-level optimization work.
+
+## Lecture 6 (Apr 17): Kernels and Triton
+
+This is the practical kernel engineering lecture.
+
+Workflow emphasized:
+
+1. Benchmark end-to-end behavior.
+2. Profile to find bottlenecks/kernels.
+3. Inspect lower-level behavior (including PTX-level clues).
+4. Re-implement critical paths (CUDA/Triton/compiled variants).
+
+Key technical segments:
+
+- Profiling matrix ops and MLP traces
+- Kernel fusion demonstrations (e.g., GeLU variants)
+- Writing CUDA extensions and validating correctness
+- Writing Triton kernels and interpreting generated code
+- Softmax and matmul optimization patterns
+- Shared-memory tiling and L2-aware traversal behavior
+
+This lecture is the bridge between "I know the algorithm" and "I can make it fast on real hardware."
+
+## Lecture 7 (Apr 22): Parallelism Basics
+
+Lecture 7 is the conceptual map of large-scale training.
+
+It starts with communication primitives (all-reduce, reduce-scatter, all-gather, etc.) and then compares parallelization strategies:
+
+- Naive data parallelism
+- ZeRO stages 1-3 / FSDP-style sharding
+- Pipeline parallelism
+- Tensor parallelism
+- Sequence/activation parallel approaches
+
+Important engineering points:
+
+- Why naive DP is memory-inefficient
+- Where ZeRO gives "almost free" memory wins vs added comm complexity
+- Why pipeline bubbles depend heavily on microbatching
+- Why tensor parallelism is typically intra-node (fast interconnect)
+- Why activation memory remains a separate scaling challenge
+
+## Lecture 8 (Apr 24): Distributed Training in PyTorch
+
+Lecture 8 operationalizes distributed concepts in code:
+
+- Collective primitives in `torch.distributed`
+- NCCL/backend behavior
+- Hardware topology constraints (NVLink/NVSwitch context)
+- Communication benchmarking
+- Bare-bones implementations of data/tensor/pipeline parallel workflows
+
+This lecture emphasizes that distributed strategy is fundamentally communication scheduling plus sharding decisions.  
+It also reinforces a recurring course theme: simple abstractions hide real costs, so you must measure on your hardware.
+
+## Lecture 9 (Apr 29): Scaling Laws Basics
+
+Lecture 9 introduces scaling laws as practical planning tools, not just curves in papers.
+
+Core topics:
+
+- Historical context from sample-complexity ideas to neural scaling observations
+- Power-law behavior for loss vs data/model/compute
+- Why exponent estimation matters
+- Hyperparameter scaling questions (batch, LR, depth/width tradeoffs)
+- Joint data-model scaling and compute-optimal decision-making
+- Chinchilla-style methods (lower envelope, IsoFLOPs, joint fits)
+
+Practical lesson: use small-to-medium runs to predict large-run choices instead of tuning directly at full scale.
+
+## Lecture 10 (May 1): Inference
+
+Lecture 10 is a strong systems lecture on serving and decoding.
+
+Main split:
+
+- **Prefill**: parallelizable and usually more compute-friendly
+- **Decode/generation**: sequential and typically memory-limited
+
+Topics covered:
+
+- Latency/throughput/TTFT trade-offs
+- KV cache accounting and why decode becomes memory-bound
+- Architecture-level cache-reduction methods:
+  - GQA
+  - MLA
+  - cross-layer KV sharing
+  - local/hybrid attention
+- Quantization and pruning/distillation paths
+- Speculative decoding (draft/target verification framing)
+- Continuous/selective batching under dynamic request shapes
+
+The key systems insight is that inference optimization is not one trick; it is a layered stack of architecture, caching, precision, and scheduling choices.
+
+## Lecture 11 (May 6): Scaling Details and Case Studies
+
+Lecture 11 moves from scaling-law theory to real model recipes.
+
+Case studies discussed include public scaling disclosures from modern model families (e.g., CerebrasGPT, MiniCPM, DeepSeek-style analyses), with emphasis on:
+
+- Practical hyperparameter scaling procedures
+- Batch/LR scaling estimation
+- Data-to-model ratio selection
+- Compute-saving schedule choices (e.g., warmup-stable-decay variants)
+- Comparing scaling-fit methods in practice
+
+It also dives into **muP (maximum update parameterization)** concepts and why scale-invariant hyperparameter transfer is attractive (and where it can fail or need adaptation in modern stacks).
+
+## Lecture 12 (May 8): Evaluation
+
+Lecture 12 is a comprehensive "how to evaluate responsibly" framework.
+
+It argues that evaluation is task-dependent and must specify:
+
+- Inputs and coverage
+- Model-calling protocol (prompting/tools/system setup)
+- Output scoring methodology
+- Interpretation assumptions
+
+Benchmark families discussed include:
+
+- Knowledge-style tests (MMLU, MMLU-Pro, GPQA, etc.)
+- Instruction-following and preference-style evaluations (Arena-like setups, IFEval, AlpacaEval, WildBench)
+- Agentic benchmarks (SWE-bench/CyBench/MLE-bench category)
+- Safety/red-team evaluation styles
+
+Additional focus areas:
+
+- Realism vs benchmark convenience
+- Train-test overlap and contamination concerns
+- "Method vs system" evaluation ambiguity
+
+## Lecture 13 (May 13): Data (Sources and Governance)
+
+Lecture 13 broadens from "how to train" to "what to train on."
+
+Major content:
+
+- Data lifecycle: live service -> dump/crawl -> processed corpus -> aggregated dataset
+- Training stages:
+  - pretraining
+  - mid-training
+  - post-training
+- Historical dataset tour (BERT/GPT-era through newer open-data pipelines)
+- Common Crawl ecosystem and conversion/filtering concerns
+- Synthetic data and distillation roles
+
+It also includes legal/compliance framing:
+
+- Copyright scope and constraints
+- Licensing realities
+- Fair use factors and ambiguity
+- Terms-of-service constraints beyond copyright
+
+The lecture's central point is that data quality, provenance, and policy constraints are core model-quality variables.
+
+## Lecture 14 (May 15): Data Processing (Filtering and Deduplication Mechanics)
+
+Lecture 14 is algorithmic and implementation-focused.
+
+Filtering toolkit:
+
+- n-gram/KenLM-style scoring
+- fastText-style classifiers
+- distributional/importance-resampling ideas (DSIR framing)
+
+Applications:
+
+- Language identification
+- Quality filtering
+- Toxicity/harm filters
+- Task/domain targeting (e.g., math-heavy corpora)
+
+Deduplication mechanics:
+
+- Exact hashing workflows
+- Bloom filters for approximate membership
+- MinHash + LSH for near-duplicate detection under Jaccard similarity
+
+This lecture makes explicit that filtering is an optimization problem over quality, diversity, coverage, and compute budget.
+
+## Lecture 15 (May 20): Alignment via SFT and RLHF
+
+Lecture 15 transitions from pretraining behavior to instruction-following/aligned behavior.
+
+Part 1 (SFT emphasis):
+
+- What instruction datasets contain in practice
+- Style effects (length/tone/bulleting) and how they influence model preference metrics
+- Safety tuning with relatively small targeted data
+- Why factual injection via finetuning can have non-trivial side effects
+- Mid-training/instruction-mix strategies to scale alignment without catastrophic forgetting
+
+Part 2 (RLHF setup):
+
+- Why preference optimization is used after SFT
+- Annotation pipeline realities (crowdsourcing quality, demographic effects, label consistency)
+- Human-vs-AI feedback trade-offs in cost/scale
+- PPO-era RLHF pipeline vs DPO simplifications
+- Known failure modes (reward overoptimization, calibration/mode-collapse issues)
+
+## Lecture 16 (May 22): RL from Verifiable Rewards (RLVR)
+
+Lecture 16 continues DPO/PPO framing, then focuses on reasoning-era RL:
+
+- PPO recap and complexity
+- GRPO motivation (remove value function, use group-relative normalization)
+- Objective behavior and known caveats (including normalization-induced quirks)
+- Length-control concerns in reasoning training
+
+The lecture then surveys successful open reasoning pipelines (R1/Kimi/Qwen-era trends) and highlights what repeatedly appears in working recipes:
+
+- Strong SFT bootstrap
+- Difficulty-aware data filtering
+- Verifiable reward design
+- RL loops with careful systems handling (rollout efficiency, uneven sequence lengths)
+- Distillation from strong reasoning traces
+
+## Lecture 17 (May 27): Policy Gradient Mechanics
+
+Lecture 17 gives the mathematical and practical mechanics behind reasoning RL updates:
+
+- Policy-gradient derivation for sequence generation
+- Sparse reward variance issues
+- Baselines and advantage intuition
+- Group-relative normalization logic
+- KL-regularized update intuition
+- Toy experimental walkthrough showing how reward shaping choices alter training behavior
+
+It is the "close the loop" lecture that makes A5-style algorithms legible from first principles rather than just library calls.
+
+## Lecture 18 (May 29): Guest Lecture (Junyang Lin)
+
+The Spring 2025 schedule lists this as a guest lecture; publicly linked detailed slides/materials are not attached on the archive page.  
+So, for this post, the concrete lecture-level summary is limited to the schedule metadata.
+
+## Lecture 19 (Jun 3): Guest Lecture (Mike Lewis)
+
+Likewise, the final guest lecture is listed in the schedule without a public lecture artifact linked directly from the archive table.  
+Summary here is therefore constrained to official schedule-level information.
 
 ---
 
-## Assignment-by-Assignment Breakdown
+## Assignment Arc (How the Lectures Land in Code)
 
-Spring 2025 CS336 is best understood through its assignment sequence. Each assignment pushes one part of the stack while preserving continuity with earlier components.
+The lecture progression maps directly onto the five assignments:
 
-## Assignment 1: Basics (released April 1; due April 15)
+- **A1 Basics**: tokenizer + transformer + optimizer + loop/checkpointing
+- **A2 Systems**: profiling, FlashAttention-style optimization, DDP, optimizer sharding
+- **A3 Scaling**: fit scaling laws and choose compute-optimal model setup under budget
+- **A4 Data**: crawl-processing filters, PII/harm filtering, dedup, train/evaluate filtered corpus
+- **A5 Alignment/Reasoning RL**: SFT + expert iteration + GRPO-style methods on reasoning tasks  
+  Optional supplement: safety/instruction tuning + DPO-like preference optimization
 
-This is a full from-scratch LM build:
-
-- Implement byte-pair encoding (BPE) tokenizer
-- Implement transformer LM components
-- Implement cross-entropy and AdamW
-- Implement training loop plus checkpointing
-- Train on TinyStories/OpenWebText-style data and report perplexity
-
-Technical emphasis:
-
-- Tokenizer behavior is not treated as preprocessing trivia; it is treated as a compression and optimization problem.
-- Model construction includes attention, RoPE, normalization, feedforward blocks, and full LM assembly.
-- Resource accounting appears early, forcing students to relate FLOPs/memory to training feasibility.
-
-A1 is intentionally heavy: it establishes the codebase and mental model for all later systems work.
-
-## Assignment 2: Systems (released April 15; due April 30)
-
-A2 is a performance engineering assignment with four pillars:
-
-- Profiling and benchmarking harnesses
-- FlashAttention2 implementation (PyTorch and Triton autograd-function paths)
-- Distributed data parallel implementations (including gradient synchronization strategies)
-- Optimizer state sharding
-
-Technical emphasis:
-
-- Use profiling tools to identify dominant kernels and memory behavior.
-- Implement attention kernels and reason about forward/backward memory footprints.
-- Engineer communication overlap and bucketization in DDP.
-- Reduce optimizer-state memory pressure via sharding.
-
-Conceptually, A2 turns "my model trains" into "my model trains efficiently at scale."
-
-## Assignment 3: Scaling (released April 29; due May 6)
-
-A3 is small in code surface area but high in strategic depth:
-
-- Fit scaling-law relationships under a fixed experimentation budget
-- Query a training API with model hyperparameters + target FLOPs
-- Use a limited budget (additional FLOPs cap) to predict compute-optimal model size and training setup for a larger run
-
-Technical emphasis:
-
-- Experiment design under constrained budgets
-- IsoFLOPs reasoning
-- Practical scaling-law fitting and extrapolation
-
-This assignment teaches "how to spend compute" rather than "how to run more compute."
-
-## Assignment 4: Data (released May 6; due May 23)
-
-A4 operationalizes the data pipeline:
-
-- Convert Common Crawl HTML/WET content into training text
-- Run language identification
-- Detect/mask PII patterns (emails, phone numbers, IPs)
-- Apply harmful-content and quality filtering
-- Perform exact and fuzzy deduplication (including MinHash-style workflows)
-- Train and evaluate models on filtered corpora
-
-Technical emphasis:
-
-- Data quality is measured by downstream impact, not just clean-looking text.
-- Filtering is multi-objective: legality, safety, quality, and utility all compete.
-- Deduplication is treated as both quality control and contamination-risk mitigation.
-
-A4 makes the case that dataset construction is one of the highest-leverage model interventions.
-
-## Assignment 5: Alignment and Reasoning RL (released May 23; due June 6)
-
-A5 focuses on math reasoning behavior and post-training:
-
-- Zero-shot baseline on MATH
-- Supervised fine-tuning from stronger-model reasoning traces
-- Expert iteration with verified rewards
-- GRPO (group-relative policy optimization) with verified rewards
-
-Technical emphasis:
-
-- Build and evaluate prompt/response tokenization and masked objectives
-- Compute response log-probs and token-level statistics
-- Implement policy-gradient-style losses and group-normalized reward pipelines
-- Compare SFT, expert iteration, and GRPO behavior empirically
-
-This brings together policy optimization and practical reasoning evaluation in one assignment track.
-
-## Optional Supplement: Safety, Instruction Tuning, and Preference Learning
-
-The optional A5 supplement extends alignment from reasoning to broader assistant behavior:
-
-- Instruction tuning on instruction-response pairs
-- Baselines and evaluations on MMLU, GSM8K, AlpacaEval, and simple safety tests
-- DPO-style preference optimization from pairwise data
-
-Technical emphasis:
-
-- Post-training objective choice directly shapes behavior style and safety/quality trade-offs.
-- Evaluation must remain multi-axis; single-metric wins can hide regressions.
+Together they force students to integrate theory, infra, and evaluation in one continuous engineering pipeline.
 
 ---
 
-## What the Lecture + Assignment Design Teaches as a System
+## Why This Offering Is Valuable
 
-A useful way to read Spring 2025 is as one end-to-end pipeline:
+Spring 2025 CS336 is unusually strong because it does not separate "ML ideas" from "systems reality."
 
-1. **Represent text** (tokenizer, corpus decisions)
-2. **Build model internals** (attention/FFN/normalization/optimization)
-3. **Make training fast and stable** (kernels, mixed precision, distributed execution)
-4. **Choose scale intelligently** (scaling-law projections, compute allocation)
-5. **Serve efficiently** (inference optimization and decoding systems)
-6. **Evaluate honestly** (capability, safety, contamination, realism)
-7. **Post-train for behavior** (SFT, preference methods, reasoning RL)
+- Architecture choices are taught alongside memory/throughput implications.
+- Parallelism is taught with concrete communication primitives and failure modes.
+- Scaling laws are treated as planning tools tied to actual budgets.
+- Data quality and legal constraints are treated as first-class technical constraints.
+- Alignment methods are taught with implementation details and known failure patterns.
 
-In other words, the course treats modern LLM development as an integrated optimization problem across data, algorithms, systems, and objectives.
-
----
-
-## Why This Offering Stands Out
-
-Three characteristics make the Spring 2025 offering unusually strong:
-
-- **Execution over abstraction**: students ship working implementations rather than only discussing architectures.
-- **Performance accountability**: profiling, communication costs, and memory pressure are explicit grading targets.
-- **Alignment grounded in implementation**: SFT/RLHF/GRPO are taught as concrete pipelines with measurable failure modes, not slogans.
-
-A practical inference from the full syllabus and handouts: CS336 is designed to produce engineers who can move from whiteboard idea to scalable training/evaluation loop without outsourcing core understanding to frameworks.
-
----
-
-## Final Takeaway
-
-The completed Spring 2025 CS336 offering is a full-stack LLM engineering curriculum:
-
-- From tokenizers to kernels
-- From single-GPU training to distributed systems
-- From scaling-law planning to inference optimization
-- From data curation to alignment and reasoning RL
-
-If your goal is to understand language models deeply enough to build and optimize them under real-world constraints, this course structure is one of the clearest public blueprints available.
+That combination is exactly what most LLM work in practice demands.
 
 ---
 
 ## Sources (Official Materials)
 
-- Archived Spring 2025 course website (schedule, lecture links, assignment links):  
+- Archived Spring 2025 course website (schedule, lecture links, assignments):  
   https://cs336.stanford.edu/spring2025/
-- Current CS336 site (shows Spring 2026 as active-construction, tentative schedule):  
+- Current CS336 site (Spring 2026 page under active construction):  
   https://cs336.stanford.edu/
 - Spring 2025 lecture materials repository:  
   https://github.com/stanford-cs336/spring2025-lectures
@@ -255,5 +408,5 @@ If your goal is to understand language models deeply enough to build and optimiz
   https://github.com/stanford-cs336/assignment3-scaling
 - Assignment 4 (Data):  
   https://github.com/stanford-cs336/assignment4-data
-- Assignment 5 (Alignment and Reasoning RL, plus optional supplement):  
+- Assignment 5 (Alignment and Reasoning RL, including optional supplement):  
   https://github.com/stanford-cs336/assignment5-alignment
