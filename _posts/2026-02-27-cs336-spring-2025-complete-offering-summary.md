@@ -28,7 +28,7 @@ In Spring 2025, that objective is developed lecture by lecture, then forced into
 The complete offering runs from **April 1, 2025 to June 6, 2025**.  
 Below is a long, technical summary of each scheduled lecture.
 
-## Lecture 1 (Apr 1): Overview and Tokenization
+## Lecture 1: Overview and Tokenization
 
 The opening lecture frames the core motivation for CS336: frontier models are increasingly "industrialized" and opaque, while researchers still need mechanistic understanding to do serious work.  
 The lecture distinguishes three kinds of knowledge:
@@ -45,7 +45,7 @@ Key framing arguments:
 
 The lecture also surveys LM history (n-grams -> neural LM -> seq2seq -> attention -> transformer -> scaling era -> open models), then maps out the full course stack: tokenization, architecture, training, kernels, distributed systems, inference, scaling laws, data curation, evaluation, and alignment.
 
-## Lecture 2 (Apr 3): PyTorch Primitives and Resource Accounting
+## Lecture 2: PyTorch Primitives and Resource Accounting
 
 This lecture is a bottom-up systems tutorial for training loops:
 
@@ -66,7 +66,7 @@ Instead of hand-wavy "this model is big," students are trained to ask:
 - Where do forward/backward FLOPs concentrate?
 - Which dtype decisions change stability vs speed?
 
-## Lecture 3 (Apr 8): Architectures and Hyperparameters
+## Lecture 3: Architectures and Hyperparameters
 
 Lecture 3 moves from canonical transformers to modern LM design conventions.
 
@@ -81,7 +81,7 @@ Major architecture topics:
 
 One major takeaway is methodological: architecture choices are often empirical and ecosystem-driven, but there are still recurring patterns (for example, pre-norm + RMSNorm + SwiGLU-like stacks in many recent open models).
 
-## Lecture 4 (Apr 10): Mixture of Experts (MoE)
+## Lecture 4: Mixture of Experts (MoE)
 
 This lecture explains why sparse MoEs became mainstream:
 
@@ -100,7 +100,7 @@ Detailed topics include:
 
 The lecture uses contemporary model families (including DeepSeek/Qwen-era designs) to show how "paper MoE" differs from production MoE.
 
-## Lecture 5 (Apr 15): GPUs
+## Lecture 5: GPUs
 
 Lecture 5 is the hardware foundations lecture:
 
@@ -120,7 +120,7 @@ Optimization concepts covered:
 
 The lecture closes by connecting these ideas to attention acceleration (FlashAttention-style reasoning), preparing students for kernel-level optimization work.
 
-## Lecture 6 (Apr 17): Kernels and Triton
+## Lecture 6: Kernels and Triton
 
 This is the practical kernel engineering lecture.
 
@@ -142,7 +142,7 @@ Key technical segments:
 
 This lecture is the bridge between "I know the algorithm" and "I can make it fast on real hardware."
 
-## Lecture 7 (Apr 22): Parallelism Basics
+## Lecture 7: Parallelism Basics
 
 Lecture 7 is the conceptual map of large-scale training.
 
@@ -162,7 +162,7 @@ Important engineering points:
 - Why tensor parallelism is typically intra-node (fast interconnect)
 - Why activation memory remains a separate scaling challenge
 
-## Lecture 8 (Apr 24): Distributed Training in PyTorch
+## Lecture 8: Distributed Training in PyTorch
 
 Lecture 8 operationalizes distributed concepts in code:
 
@@ -175,7 +175,7 @@ Lecture 8 operationalizes distributed concepts in code:
 This lecture emphasizes that distributed strategy is fundamentally communication scheduling plus sharding decisions.  
 It also reinforces a recurring course theme: simple abstractions hide real costs, so you must measure on your hardware.
 
-## Lecture 9 (Apr 29): Scaling Laws Basics
+## Lecture 9: Scaling Laws Basics
 
 Lecture 9 introduces scaling laws as practical planning tools, not just curves in papers.
 
@@ -190,7 +190,7 @@ Core topics:
 
 Practical lesson: use small-to-medium runs to predict large-run choices instead of tuning directly at full scale.
 
-## Lecture 10 (May 1): Inference
+## Lecture 10: Inference
 
 Lecture 10 is a strong systems lecture on serving and decoding.
 
@@ -214,7 +214,7 @@ Topics covered:
 
 The key systems insight is that inference optimization is not one trick; it is a layered stack of architecture, caching, precision, and scheduling choices.
 
-## Lecture 11 (May 6): Scaling Details and Case Studies
+## Lecture 11: Scaling Details and Case Studies
 
 Lecture 11 moves from scaling-law theory to real model recipes.
 
@@ -228,7 +228,7 @@ Case studies discussed include public scaling disclosures from modern model fami
 
 It also dives into **muP (maximum update parameterization)** concepts and why scale-invariant hyperparameter transfer is attractive (and where it can fail or need adaptation in modern stacks).
 
-## Lecture 12 (May 8): Evaluation
+## Lecture 12: Evaluation
 
 Lecture 12 is a comprehensive "how to evaluate responsibly" framework.
 
@@ -252,7 +252,7 @@ Additional focus areas:
 - Train-test overlap and contamination concerns
 - "Method vs system" evaluation ambiguity
 
-## Lecture 13 (May 13): Data (Sources and Governance)
+## Lecture 13: Data (Sources and Governance)
 
 Lecture 13 broadens from "how to train" to "what to train on."
 
@@ -276,7 +276,7 @@ It also includes legal/compliance framing:
 
 The lecture's central point is that data quality, provenance, and policy constraints are core model-quality variables.
 
-## Lecture 14 (May 15): Data Processing (Filtering and Deduplication Mechanics)
+## Lecture 14: Data Processing (Filtering and Deduplication Mechanics)
 
 Lecture 14 is algorithmic and implementation-focused.
 
@@ -301,7 +301,7 @@ Deduplication mechanics:
 
 This lecture makes explicit that filtering is an optimization problem over quality, diversity, coverage, and compute budget.
 
-## Lecture 15 (May 20): Alignment via SFT and RLHF
+## Lecture 15: Alignment via SFT and RLHF
 
 Lecture 15 transitions from pretraining behavior to instruction-following/aligned behavior.
 
@@ -321,7 +321,7 @@ Part 2 (RLHF setup):
 - PPO-era RLHF pipeline vs DPO simplifications
 - Known failure modes (reward overoptimization, calibration/mode-collapse issues)
 
-## Lecture 16 (May 22): RL from Verifiable Rewards (RLVR)
+## Lecture 16: RL from Verifiable Rewards (RLVR)
 
 Lecture 16 continues DPO/PPO framing, then focuses on reasoning-era RL:
 
@@ -338,7 +338,7 @@ The lecture then surveys successful open reasoning pipelines (R1/Kimi/Qwen-era t
 - RL loops with careful systems handling (rollout efficiency, uneven sequence lengths)
 - Distillation from strong reasoning traces
 
-## Lecture 17 (May 27): Policy Gradient Mechanics
+## Lecture 17: Policy Gradient Mechanics
 
 Lecture 17 gives the mathematical and practical mechanics behind reasoning RL updates:
 
@@ -351,12 +351,12 @@ Lecture 17 gives the mathematical and practical mechanics behind reasoning RL up
 
 It is the "close the loop" lecture that makes A5-style algorithms legible from first principles rather than just library calls.
 
-## Lecture 18 (May 29): Guest Lecture (Junyang Lin)
+## Lecture 18: Guest Lecture (Junyang Lin)
 
 The Spring 2025 schedule lists this as a guest lecture; publicly linked detailed slides/materials are not attached on the archive page.  
 So, for this post, the concrete lecture-level summary is limited to the schedule metadata.
 
-## Lecture 19 (Jun 3): Guest Lecture (Mike Lewis)
+## Lecture 19: Guest Lecture (Mike Lewis)
 
 Likewise, the final guest lecture is listed in the schedule without a public lecture artifact linked directly from the archive table.  
 Summary here is therefore constrained to official schedule-level information.
